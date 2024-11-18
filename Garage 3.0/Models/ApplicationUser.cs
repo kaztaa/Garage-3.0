@@ -4,7 +4,7 @@ namespace Garage_3._0.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        public int Id {  get; set; }
+        public string Id {  get; set; }
         public int SSN { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

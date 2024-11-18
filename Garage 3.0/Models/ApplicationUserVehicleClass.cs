@@ -8,6 +8,6 @@
 
         // Foregin key
         public ApplicationUser ApplicationUser { get; set; }
-        // public Vehicle { get; set; } // avkommentera när vi har Vehicle
+        public Vehicle Vehicle { get; set; } // avkommentera när vi har Vehicle
     }
 }

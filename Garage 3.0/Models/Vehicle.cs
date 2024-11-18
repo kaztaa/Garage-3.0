@@ -2,7 +2,7 @@
 {
     public class Vehicle
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string RegistrationNumber { get; set; } = string.Empty;
         public string Color { get; set; } = string.Empty;
         public string Brand { get; set; } = string.Empty;
@@ -12,6 +12,6 @@
         public int VehicleTypeId { get; set; }
         public virtual VehicleType? VehicleType { get; set; }
 
-
+        public ParkingSpot ParkingSpot { get; set; }
     }
 }
