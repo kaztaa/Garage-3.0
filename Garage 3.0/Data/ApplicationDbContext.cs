@@ -1,10 +1,11 @@
 ﻿using Garage_3._0.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Garage_3._0.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -47,5 +48,7 @@ namespace Garage_3._0.Data
                 .Property(p => p.IsOccupied)
                 .IsRequired(); // IsOccupied är obligatoriskt
         }
+
+
     }
 }
