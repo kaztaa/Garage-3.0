@@ -10,6 +10,6 @@ namespace Garage_3._0.Models
         public string LastName { get; set; }
         public string FullName => $"{FirstName} {LastName}";
 
-        // public ICollection<Vehicle> Vehicles { get; set; } avkommentera när vi har Vehicle klass (1 användare kan ha många vehicles)
+        public ICollection<Vehicle> Vehicles { get; set; } //avkommentera när vi har Vehicle klass (1 användare kan ha många vehicles)
     }
 }

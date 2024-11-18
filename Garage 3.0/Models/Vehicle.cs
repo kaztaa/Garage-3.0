@@ -10,7 +10,7 @@
         public int ParkingSpotSize { get; set; }
         public int NumberOfWheels { get; set; }
         public int VehicleTypeId { get; set; }
-        // public virtual VehicleType? VehicleType { get; set; }
+        public virtual VehicleType? VehicleType { get; set; }
 
 
     }
