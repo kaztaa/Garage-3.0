@@ -19,8 +19,8 @@ namespace Garage_3._0.Data
             var adminEmail = "admin@Garage.se";
             var userEmail = "user@user.com";
             await AddRolesAsync(roleNames);
-            var admin = await AddAccountAsync(adminEmail, "Admin", "Adminsson", "P@55w.rd");
-            var user = await AddAccountAsync(userEmail, "User", "Usersson", "Pa55w.rd");
+            var admin = await AddAccountAsync(adminEmail, "Admin", "Adminsson", "P@55w.rd", "19900101-5678");
+            var user = await AddAccountAsync(userEmail, "User", "Usersson", "Pa55w.rd", "19950214-5432");
             await AddUserToRoleAsync(admin, "Admin");
             await AddUserToRoleAsync(user, "Member");
         }
@@ -42,7 +42,7 @@ namespace Garage_3._0.Data
                 if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
             }
         }
-        private static async Task<ApplicationUser> AddAccountAsync(string accountEmail, string fName, string lName, string pw)
+        private static async Task<ApplicationUser> AddAccountAsync(string accountEmail, string fName, string lName, string pw, string ssn)
         {
             var found = await userManager.FindByEmailAsync(accountEmail);
             if (found != null) return null!;
@@ -52,6 +52,7 @@ namespace Garage_3._0.Data
                 Email = accountEmail,
                 FirstName = fName,
                 LastName = lName,
+                SSN = ssn,
                 EmailConfirmed = true
             };
             var result = await userManager.CreateAsync(user, pw);
