@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Garage_3._0.Areas.Identity.Pages.Account
 {
@@ -72,14 +73,20 @@ namespace Garage_3._0.Areas.Identity.Pages.Account
         public class InputModel
         {
             // New fields
-            [Required]
+            [Required(ErrorMessage = "First Name is required.")]
+            [MinLength(2, ErrorMessage = "First Name should be at least 2 characters.")]
+            [MaxLength(50, ErrorMessage = "First Name should not exceed 50 characters.")]
             [Display(Name = "First Name")]
             public string FirstName { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "Last Name is required.")]
+            [MinLength(2, ErrorMessage = "Last Name should be at least 2 characters.")]
+            [MaxLength(50, ErrorMessage = "Last Name should not exceed 50 characters.")]
             [Display(Name = "Last Name")]
             public string LastName { get; set; }
-            [Required]
+
+            [Required(ErrorMessage = "Person number is required.")]
+            [RegularExpression(@"^\d{8}-\d{4}$", ErrorMessage = "Invalid Person Number format. Use 'YYYYMMDD-XXXX'.")]
             [Display(Name = "Person number")]
             public string SSN { get; set; }
             /// <summary>
@@ -124,6 +131,23 @@ namespace Garage_3._0.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
+                // Check if First Name and Last Name are not the same
+                if (Input.FirstName == Input.LastName)
+                {
+                    ModelState.AddModelError("Input.FirstName", "First Name and Last Name cannot be the same.");
+                    return Page();
+                }
+
+                // Check if SSN is unique
+                var existingUser = await _userManager.Users
+                    .FirstOrDefaultAsync(u => u.SSN == Input.SSN);
+
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Input.SSN", "The Person number (SSN) is already in use.");
+                    return Page();
+                }
+
                 var user = CreateUser();
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
