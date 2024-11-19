@@ -29,12 +29,27 @@ namespace Garage_3._0.Data
                 .HasForeignKey(v => v.Id)
                 .OnDelete(DeleteBehavior.Cascade); // Om användare tas bort, ta bort deras fordon också
 
-            // Vehicle - Many-to-One med VehicleType
+            //// Vehicle - Many-to-One med VehicleType
+            //modelBuilder.Entity<Vehicle>()
+            //    .HasOne(v => v.VehicleType)
+            //.WithMany(t => t.Vehicles)
+            //.HasForeignKey(v => v.VehicleTypeId);
+            ////.OnDelete(DeleteBehavior.Restrict); // Begränsa borttagning av VehicleType om fordon använder det
+
+            // Konfiguration av en-till-många-relationen mellan Vehicle och VehicleType
             modelBuilder.Entity<Vehicle>()
-                .HasOne(v => v.VehicleType);
-                //.WithMany(t => t.Vehicles)
-                //.HasForeignKey(v => v.VehicleTypeId)
-                //.OnDelete(DeleteBehavior.Restrict); // Begränsa borttagning av VehicleType om fordon använder det
+                .HasOne(v => v.VehicleType)  // Ett Vehicle har en VehicleType
+                .WithMany(vt => vt.Vehicles)  // En VehicleType kan ha många Vehicles
+                .HasForeignKey(v => v.VehicleTypeId)  // Set the foreign key
+                .OnDelete(DeleteBehavior.Restrict);  // När en VehicleType tas bort, tas inte de kopplade fordonen bort
+
+            // Seed data för VehicleType
+            modelBuilder.Entity<VehicleType>().HasData(
+                new VehicleType { Id = 1, Name = "Car" },
+                new VehicleType { Id = 2, Name = "Motorcycle" },
+                new VehicleType { Id = 3, Name = "Truck" }
+            );
+
 
             // Vehicle - One-to-One med ParkingSpot
             modelBuilder.Entity<ParkingSpot>()
