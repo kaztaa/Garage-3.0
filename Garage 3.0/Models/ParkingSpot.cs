@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 public class ParkingSpot
 {
     [Key]
-    public string Id { get; set; }
+    public int Id { get; set; }
 
     [Required]
     public string SpotNumber { get; set; } = string.Empty;
@@ -12,8 +12,10 @@ public class ParkingSpot
     [Required]
     public bool IsOccupied { get; set; }
 
-    public int ParkingSpotSize {  get; set; }
-    public string? VehicleId { get; set; } // Nullable for empty spots
-    
-    public Vehicle Vehicle { get; set; }
+    public int ParkingSpotSize { get; set; }
+
+    // Foreign key for Vehicle (should match the primary key type of Vehicle)
+    public int? VehicleId { get; set; } // Nullable for empty spots
+
+    public virtual Vehicle Vehicle { get; set; }
 }

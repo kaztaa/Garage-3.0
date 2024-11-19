@@ -27,9 +27,9 @@ namespace Garage_3._0.Controllers
         }
 
         // GET: Vehicles/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
+            if (id == 0)
             {
                 return NotFound();
             }
@@ -45,10 +45,11 @@ namespace Garage_3._0.Controllers
             return View(vehicle);
         }
 
+
         // GET: Vehicles/Create
         public IActionResult Create()
         {
-            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Id");
+            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Name");
             return View();
         }
 
@@ -57,22 +58,54 @@ namespace Garage_3._0.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,RegistrationNumber,Color,Brand,Model,ParkingSpotSize,NumberOfWheels,VehicleTypeId")] Vehicle vehicle)
+        public async Task<IActionResult> Create([Bind("Id,VehicleTypeId,RegistrationNumber,Color,Brand,Model,ParkingSpotSize,NumberOfWheels")] Vehicle vehicle)
         {
+            // Debugging ModelState for validation errors
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                            .Where(ms => ms.Value.Errors.Any())
+                            .SelectMany(x => x.Value.Errors)
+                            .Select(x => x.ErrorMessage)
+                            .ToList();
+                foreach (var error in errors)
+                {
+                    Console.WriteLine($"Validation Error: {error}");
+                }
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(vehicle);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                // Check if a vehicle with the same RegistrationNumber already exists
+                var existingVehicle = await _context.Vehicles
+                    .FirstOrDefaultAsync(v => v.RegistrationNumber == vehicle.RegistrationNumber);
+
+                if (existingVehicle != null)
+                {
+                    // Add an error to the ModelState if the registration number already exists
+                    ModelState.AddModelError("RegistrationNumber", "This registration number already exists.");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    _context.Add(vehicle);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
             }
-            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Id", vehicle.VehicleTypeId);
+
+            // Repopulate dropdown in case of validation failure
+            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Name", vehicle.VehicleTypeId);
             return View(vehicle);
         }
 
+
+
+
         // GET: Vehicles/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
+            if (id == 0)
             {
                 return NotFound();
             }
@@ -82,16 +115,18 @@ namespace Garage_3._0.Controllers
             {
                 return NotFound();
             }
-            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Id", vehicle.VehicleTypeId);
+            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Name", vehicle.VehicleTypeId);
             return View(vehicle);
         }
+
+
 
         // POST: Vehicles/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,RegistrationNumber,Color,Brand,Model,ParkingSpotSize,NumberOfWheels,VehicleTypeId")] Vehicle vehicle)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,RegistrationNumber,Color,Brand,Model,ParkingSpotSize,NumberOfWheels,VehicleTypeId")] Vehicle vehicle)
         {
             if (id != vehicle.Id)
             {
@@ -118,14 +153,18 @@ namespace Garage_3._0.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Id", vehicle.VehicleTypeId);
+            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Name", vehicle.VehicleTypeId);
             return View(vehicle);
         }
 
+
+
+
+
         // GET: Vehicles/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
+            if (id == 0)
             {
                 return NotFound();
             }
@@ -141,10 +180,11 @@ namespace Garage_3._0.Controllers
             return View(vehicle);
         }
 
+
         // POST: Vehicles/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle != null)
@@ -156,9 +196,11 @@ namespace Garage_3._0.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool VehicleExists(string id)
+
+        private bool VehicleExists(int id)
         {
             return _context.Vehicles.Any(e => e.Id == id);
         }
+
     }
 }

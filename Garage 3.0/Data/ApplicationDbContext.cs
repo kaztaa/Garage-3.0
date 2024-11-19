@@ -12,58 +12,47 @@ namespace Garage_3._0.Data
         {
         }
 
-        // DbSets för tabellerna
+        // DbSets for tables
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<VehicleType> VehicleTypes { get; set; }
         public DbSet<ParkingSpot> ParkingSpots { get; set; }
-        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // ApplicationUser - One-to-Many med Vehicle
+            // ApplicationUser - One-to-Many with Vehicle
             modelBuilder.Entity<ApplicationUser>()
                 .HasMany(u => u.Vehicles)
-                .WithOne()
-                .HasForeignKey(v => v.Id)
-                .OnDelete(DeleteBehavior.Cascade); // Om användare tas bort, ta bort deras fordon också
+                .WithOne(v => v.ApplicationUser)
+                .HasForeignKey(v => v.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade); // If a user is deleted, delete their vehicles too
 
-            //// Vehicle - Many-to-One med VehicleType
-            //modelBuilder.Entity<Vehicle>()
-            //    .HasOne(v => v.VehicleType)
-            //.WithMany(t => t.Vehicles)
-            //.HasForeignKey(v => v.VehicleTypeId);
-            ////.OnDelete(DeleteBehavior.Restrict); // Begränsa borttagning av VehicleType om fordon använder det
-
-            // Konfiguration av en-till-många-relationen mellan Vehicle och VehicleType
+            // Vehicle - Many-to-One with VehicleType
             modelBuilder.Entity<Vehicle>()
-                .HasOne(v => v.VehicleType)  // Ett Vehicle har en VehicleType
-                .WithMany(vt => vt.Vehicles)  // En VehicleType kan ha många Vehicles
-                .HasForeignKey(v => v.VehicleTypeId)  // Set the foreign key
-                .OnDelete(DeleteBehavior.Restrict);  // När en VehicleType tas bort, tas inte de kopplade fordonen bort
+                .HasOne(v => v.VehicleType)
+                .WithMany(vt => vt.Vehicles)
+                .HasForeignKey(v => v.VehicleTypeId)
+                .OnDelete(DeleteBehavior.Restrict); // When a VehicleType is deleted, do not delete related Vehicles
 
-            // Seed data för VehicleType
+            // VehicleType Seed Data
             modelBuilder.Entity<VehicleType>().HasData(
                 new VehicleType { Id = 1, Name = "Car" },
                 new VehicleType { Id = 2, Name = "Motorcycle" },
                 new VehicleType { Id = 3, Name = "Truck" }
             );
 
-
-            // Vehicle - One-to-One med ParkingSpot
+            // ParkingSpot - One-to-One with Vehicle
             modelBuilder.Entity<ParkingSpot>()
                 .HasOne(p => p.Vehicle)
                 .WithOne(v => v.ParkingSpot)
                 .HasForeignKey<ParkingSpot>(p => p.VehicleId)
-                .OnDelete(DeleteBehavior.SetNull); // Om ett fordon tas bort, sätt VehicleId till null
+                .OnDelete(DeleteBehavior.SetNull); // If a vehicle is deleted, set VehicleId to null in ParkingSpot
 
-            // Övriga konfigurationer
+            // Additional configurations for ParkingSpot
             modelBuilder.Entity<ParkingSpot>()
                 .Property(p => p.IsOccupied)
-                .IsRequired(); // IsOccupied är obligatoriskt
+                .IsRequired(); // IsOccupied is required
         }
-
-
     }
 }

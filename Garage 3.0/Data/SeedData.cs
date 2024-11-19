@@ -5,26 +5,26 @@ namespace Garage_3._0.Data
 {
     public class SeedData
     {
-        private static ApplicationDbContext context = default!;
-        private static RoleManager<IdentityRole> roleManager = default!;
-        private static UserManager<ApplicationUser> userManager = default!;
-
-        public static async Task Init(ApplicationDbContext _context, IServiceProvider services)
+        public static async Task Init(ApplicationDbContext context, IServiceProvider services)
         {
-            context = _context;
             if (context.Roles.Any()) return;
-            roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-            userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+
             var roleNames = new[] { "Member", "Admin" };
             var adminEmail = "admin@Garage.se";
             var userEmail = "user@user.com";
-            await AddRolesAsync(roleNames);
-            var admin = await AddAccountAsync(adminEmail, "Admin", "Adminsson", "P@55w.rd");
-            var user = await AddAccountAsync(userEmail, "User", "Usersson", "Pa55w.rd");
-            await AddUserToRoleAsync(admin, "Admin");
-            await AddUserToRoleAsync(user, "Member");
+
+            await AddRolesAsync(roleManager, roleNames);
+            var admin = await AddAccountAsync(userManager, adminEmail, "Admin", "Adminsson", "P@55w.rd");
+            var user = await AddAccountAsync(userManager, userEmail, "User", "Usersson", "Pa55w.rd");
+
+            await AddUserToRoleAsync(userManager, admin, "Admin");
+            await AddUserToRoleAsync(userManager, user, "Member");
         }
-        private static async Task AddUserToRoleAsync(ApplicationUser user, string roleName)
+
+        private static async Task AddUserToRoleAsync(UserManager<ApplicationUser> userManager, ApplicationUser user, string roleName)
         {
             if (!await userManager.IsInRoleAsync(user, roleName))
             {
@@ -32,7 +32,8 @@ namespace Garage_3._0.Data
                 if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
             }
         }
-        private static async Task AddRolesAsync(string[] roleNames)
+
+        private static async Task AddRolesAsync(RoleManager<IdentityRole> roleManager, string[] roleNames)
         {
             foreach (var roleName in roleNames)
             {
@@ -42,10 +43,12 @@ namespace Garage_3._0.Data
                 if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
             }
         }
-        private static async Task<ApplicationUser> AddAccountAsync(string accountEmail, string fName, string lName, string pw)
+
+        private static async Task<ApplicationUser> AddAccountAsync(UserManager<ApplicationUser> userManager, string accountEmail, string fName, string lName, string pw)
         {
             var found = await userManager.FindByEmailAsync(accountEmail);
             if (found != null) return null!;
+
             var user = new ApplicationUser
             {
                 UserName = accountEmail,
@@ -56,6 +59,7 @@ namespace Garage_3._0.Data
             };
             var result = await userManager.CreateAsync(user, pw);
             if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
+
             return user;
         }
     }

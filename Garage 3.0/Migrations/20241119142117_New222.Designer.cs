@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Garage_3._0.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241119104636_Init")]
-    partial class Init
+    [Migration("20241119142117_New222")]
+    partial class New222
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -103,7 +103,14 @@ namespace Garage_3._0.Migrations
 
             modelBuilder.Entity("Garage_3._0.Models.Vehicle", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Brand")
@@ -133,6 +140,8 @@ namespace Garage_3._0.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApplicationUserId");
+
                     b.HasIndex("VehicleTypeId");
 
                     b.ToTable("Vehicles");
@@ -153,6 +162,23 @@ namespace Garage_3._0.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("VehicleTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Car"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Motorcycle"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Truck"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -294,8 +320,11 @@ namespace Garage_3._0.Migrations
 
             modelBuilder.Entity("ParkingSpot", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("IsOccupied")
                         .HasColumnType("bit");
@@ -307,8 +336,8 @@ namespace Garage_3._0.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("VehicleId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int?>("VehicleId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -321,17 +350,19 @@ namespace Garage_3._0.Migrations
 
             modelBuilder.Entity("Garage_3._0.Models.Vehicle", b =>
                 {
-                    b.HasOne("Garage_3._0.Models.ApplicationUser", null)
+                    b.HasOne("Garage_3._0.Models.ApplicationUser", "ApplicationUser")
                         .WithMany("Vehicles")
-                        .HasForeignKey("Id")
+                        .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Garage_3._0.Models.VehicleType", "VehicleType")
-                        .WithMany()
+                        .WithMany("Vehicles")
                         .HasForeignKey("VehicleTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ApplicationUser");
 
                     b.Navigation("VehicleType");
                 });
@@ -406,6 +437,11 @@ namespace Garage_3._0.Migrations
                 {
                     b.Navigation("ParkingSpot")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Garage_3._0.Models.VehicleType", b =>
+                {
+                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }

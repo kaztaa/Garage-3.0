@@ -1,5 +1,4 @@
 using Garage_3._0.Data;
-using Garage_3._0.Extensions;
 using Garage_3._0.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +36,25 @@ namespace Garage_3._0
                 app.UseHsts();
             }
 
-            await app.SeedDataAsync();
+            // Apply migrations and seed the database
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    // Apply any pending migrations
+                    var context = services.GetRequiredService<ApplicationDbContext>();
+                    await context.Database.MigrateAsync(); // Apply any pending migrations
+
+                    // Seed the database
+                    await SeedData.Init(context, services);
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred while seeding the database.");
+                }
+            }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
