@@ -156,6 +156,8 @@ namespace Garage_3._0.Areas.Identity.Pages.Account
                 user.LastName = Input.LastName;
                 user.SSN = Input.SSN;
                 var result = await _userManager.CreateAsync(user, Input.Password);
+                // Assign the "Member" role to the new user
+                var addToRoleResult = await _userManager.AddToRoleAsync(user, "Member");
 
                 if (result.Succeeded)
                 {
