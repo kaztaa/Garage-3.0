@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Garage_3._0.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241119102204_Init")]
+    [Migration("20241119123220_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -75,8 +75,9 @@ namespace Garage_3._0.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int>("SSN")
-                        .HasColumnType("int");
+                    b.Property<string>("SSN")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
