@@ -7,7 +7,7 @@
 <h1>@ViewData["Title"]</h1>
 
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-5">
         <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
             <h2>Create a new account.</h2>
             <hr />
@@ -22,11 +22,58 @@
                 <label asp-for="Input.LastName">Last Name</label>
                 <span asp-validation-for="Input.LastName" class="text-danger"></span>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.SSN" class="form-control" placeholder="YYYYMMDD-XXXX" />
-                <label asp-for="Input.SSN">SSN (Person number)</label>
-                <span asp-validation-for="Input.SSN" class="text-danger"></span>
+            <div class="row g-2 align-items-end mb-3">
+                <!-- Year Dropdown -->
+                <div class="col-md-3 form-floating">
+                    <select id="year" class="form-select">
+                        <option value="" disabled selected>Year</option>
+                        @for (int i = DateTime.Now.Year; i >= 1900; i--)
+                        {
+                            <option value="@i">@i</option>
+                        }
+                    </select>
+                    <label for="year">Year</label>
+                </div>
+
+                <!-- Month Dropdown -->
+                <div class="col-md-3 form-floating">
+                    <select id="month" class="form-select">
+                        <option value="" disabled selected>Month</option>
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            <option value="@i.ToString("D2")">@i.ToString("D2")</option>
+                        }
+                    </select>
+                    <label for="month">Month</label>
+                </div>
+
+                <!-- Day Dropdown -->
+                <div class="col-md-3 form-floating">
+                    <select id="day" class="form-select">
+                        <option value="" disabled selected>Day</option>
+                        @for (int i = 1; i <= 31; i++)
+                        {
+                            <option value="@i.ToString("D2")">@i.ToString("D2")</option>
+                        }
+                    </select>
+                    <label for="day">Day</label>
+                </div>
+
+                <!-- Input for Last 4 Digits -->
+                <div class="col-md-3 form-floating">
+                    <input type="text" id="ssnLastFour" class="form-control" maxlength="4" placeholder="XXXX" />
+                    <label for="ssnLastFour">Last 4 Digits</label>
+                </div>
             </div>
+
+
+
+            <!-- Hidden Input to Store Combined SSN -->
+            <input asp-for="Input.SSN" id="ssn" type="hidden" />
+
+            <!-- Validation Message -->
+            <span asp-validation-for="Input.SSN" class="text-danger"></span>
+
             <div class="form-floating mb-3">
                 <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                 <label asp-for="Input.Email">Email</label>
@@ -79,4 +126,31 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const yearInput = document.getElementById("year");
+            const monthInput = document.getElementById("month");
+            const dayInput = document.getElementById("day");
+            const ssnLastFourInput = document.getElementById("ssnLastFour");
+            const ssnHiddenInput = document.getElementById("ssn");
+
+            function updateSSN() {
+                const year = yearInput.value;
+                const month = monthInput.value;
+                const day = dayInput.value;
+                const lastFour = ssnLastFourInput.value;
+
+                if (year && month && day && lastFour) {
+                    ssnHiddenInput.value = `${year}${month}${day}-${lastFour}`;
+                }
+            }
+
+            // Add event listeners to update SSN on changes
+            [yearInput, monthInput, dayInput, ssnLastFourInput].forEach(input => {
+                input.addEventListener("input", updateSSN);
+            });
+        });
+
+    </script>
 }
