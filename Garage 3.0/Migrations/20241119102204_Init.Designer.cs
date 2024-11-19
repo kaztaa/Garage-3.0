@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Garage_3._0.Data.Migrations
+namespace Garage_3._0.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241119091739_RolesAdded")]
-    partial class RolesAdded
+    [Migration("20241119102204_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
