@@ -1,9 +1,11 @@
-﻿namespace Garage_3._0.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Garage_3._0.Models
 {
     public class ApplicationUserVehicleClass
     {
         // Primary key
-        public int ApplicationUserId { get; set; }
+        public string ApplicationUserId { get; set; }
         public int VehicleId { get; set; }
 
         // Foregin key

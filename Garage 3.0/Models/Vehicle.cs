@@ -2,7 +2,7 @@
 {
     public class Vehicle
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string RegistrationNumber { get; set; } = string.Empty;
         public string Color { get; set; } = string.Empty;
         public string Brand { get; set; } = string.Empty;
@@ -11,7 +11,9 @@
         public int NumberOfWheels { get; set; }
         public int VehicleTypeId { get; set; }
         public virtual VehicleType? VehicleType { get; set; }
-
-        public ParkingSpot ParkingSpot { get; set; }
+        public ParkingSpot? ParkingSpot { get; set; }
+        public ICollection<ApplicationUserVehicleClass> ApplicationUserVehicleClasses { get; set; }
+        public int ApplicationUserId { get; set; }  // Foreign key property
+        public virtual ApplicationUser ApplicationUser { get; set; }  // Navigation property
     }
 }

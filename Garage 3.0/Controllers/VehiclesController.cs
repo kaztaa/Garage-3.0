@@ -1,164 +1,196 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Garage_3._0.Data;
+﻿using Garage_3._0.Data;
+using Garage_3._0.Models.ViewModels;
 using Garage_3._0.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
-namespace Garage_3._0.Controllers
+public class VehiclesController : Controller
 {
-    public class VehiclesController : Controller
+    private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public VehiclesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+        _userManager = userManager;
+    }
 
-        public VehiclesController(ApplicationDbContext context)
+    // GET: Vehicles
+    public async Task<IActionResult> Index()
+    {
+        var userId = _userManager.GetUserId(User);
+        var vehicles = await _context.Vehicles
+            .Where(v => v.ApplicationUserVehicleClasses.Any(auv => auv.ApplicationUserId == userId))
+            .Include(v => v.VehicleType)
+            .Include(v => v.ApplicationUserVehicleClasses)
+            .ToListAsync();
+
+        return View(vehicles);
+    }
+
+    // GET: Vehicles/Create
+    public IActionResult Create()
+    {
+        var viewModel = new VehicleCreateViewModel
         {
-            _context = context;
-        }
-
-        // GET: Vehicles
-        public async Task<IActionResult> Index()
-        {
-            var applicationDbContext = _context.Vehicles.Include(v => v.VehicleType);
-            return View(await applicationDbContext.ToListAsync());
-        }
-
-        // GET: Vehicles/Details/5
-        public async Task<IActionResult> Details(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var vehicle = await _context.Vehicles
-                .Include(v => v.VehicleType)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-
-            return View(vehicle);
-        }
-
-        // GET: Vehicles/Create
-        public IActionResult Create()
-        {
-            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Id");
-            return View();
-        }
-
-        // POST: Vehicles/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,RegistrationNumber,Color,Brand,Model,ParkingSpotSize,NumberOfWheels,VehicleTypeId")] Vehicle vehicle)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(vehicle);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Id", vehicle.VehicleTypeId);
-            return View(vehicle);
-        }
-
-        // GET: Vehicles/Edit/5
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var vehicle = await _context.Vehicles.FindAsync(id);
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Id", vehicle.VehicleTypeId);
-            return View(vehicle);
-        }
-
-        // POST: Vehicles/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,RegistrationNumber,Color,Brand,Model,ParkingSpotSize,NumberOfWheels,VehicleTypeId")] Vehicle vehicle)
-        {
-            if (id != vehicle.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+            Vehicle = new Vehicle(),
+            VehicleTypes = Enum.GetValues(typeof(VehicleTypes))
+                .Cast<VehicleTypes>()
+                .Select(vt => new SelectListItem
                 {
-                    _context.Update(vehicle);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!VehicleExists(vehicle.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["VehicleTypeId"] = new SelectList(_context.VehicleTypes, "Id", "Id", vehicle.VehicleTypeId);
-            return View(vehicle);
-        }
+                    Value = vt.ToString(), // Use ToString() for enum string values
+                    Text = vt.ToString() // Display text
+                }).ToList()
+        };
 
-        // GET: Vehicles/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        return View(viewModel);
+    }
+
+    // POST: Vehicles/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create([Bind("Id,RegistrationNumber,Color,Brand,Model,ParkingSpotSize,NumberOfWheels,VehicleType")] Vehicle vehicle)
+    {
+        foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var vehicle = await _context.Vehicles
-                .Include(v => v.VehicleType)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-
-            return View(vehicle);
+            Console.WriteLine(error.ErrorMessage);
         }
-
-        // POST: Vehicles/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        if (ModelState.IsValid)
         {
-            var vehicle = await _context.Vehicles.FindAsync(id);
-            if (vehicle != null)
-            {
-                _context.Vehicles.Remove(vehicle);
-            }
-
+            // Add vehicle to the database
+            _context.Add(vehicle);
             await _context.SaveChangesAsync();
+
+            // Associate with the user
+            var userId = _userManager.GetUserId(User);
+            var applicationUserVehicle = new ApplicationUserVehicleClass
+            {
+                ApplicationUserId = userId,
+                VehicleId = vehicle.Id
+            };
+
+            _context.Add(applicationUserVehicle);
+            await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        private bool VehicleExists(string id)
+        // Repopulate the VehicleTypes list for the view
+        var viewModel = new VehicleCreateViewModel
         {
-            return _context.Vehicles.Any(e => e.Id == id);
+            Vehicle = vehicle,
+            VehicleTypes = Enum.GetValues(typeof(VehicleTypes))
+                .Cast<VehicleTypes>()
+                .Select(vt => new SelectListItem
+                {
+                    Value = vt.ToString(),
+                    Text = vt.ToString()
+                }).ToList()
+        };
+
+        return View(viewModel);
+    }
+
+
+    // GET: Vehicles/Edit/5
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
         }
+
+        var vehicle = await _context.Vehicles
+            .Include(v => v.ApplicationUserVehicleClasses)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (vehicle == null)
+        {
+            return NotFound();
+        }
+
+        return View(vehicle);
+    }
+
+    // POST: Vehicles/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, [Bind("Id,RegistrationNumber,Color,Brand,Model,ParkingSpotSize,NumberOfWheels,VehicleTypeId")] Vehicle vehicle)
+    {
+        if (id != vehicle.Id)
+        {
+            return NotFound();
+        }
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                _context.Update(vehicle);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!VehicleExists(vehicle.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
+        }
+        return View(vehicle);
+    }
+
+    // GET: Vehicles/Delete/5
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var vehicle = await _context.Vehicles
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (vehicle == null)
+        {
+            return NotFound();
+        }
+
+        return View(vehicle);
+    }
+
+    // POST: Vehicles/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        //var vehicle = await _context.Vehicles.FindAsync(id);
+        //var userId = _userManager.GetUserId(User);
+
+        //// Find the association with the user and remove it
+        //var association = await _context.ApplicationUserVehicleClasses
+        //    .FirstOrDefaultAsync(auv => auv.ApplicationUserId == userId && auv.VehicleId == vehicle.Id);
+
+        //if (association != null)
+        //{
+        //    _context.ApplicationUserVehicleClasses.Remove(association);
+        //}
+
+        //_context.Vehicles.Remove(vehicle);
+        //await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    private bool VehicleExists(int id)
+    {
+        return _context.Vehicles.Any(e => e.Id == id);
     }
 }
